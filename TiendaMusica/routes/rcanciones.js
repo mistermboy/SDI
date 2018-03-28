@@ -51,9 +51,7 @@ module.exports = function(app, swig, gestorBD) {
 																										res
 																												.send("Error al subir el audio");
 																									} else {
-																										res
-																												.send("Agregada id: "
-																														+ id);
+																										res.redirect("/publicaciones");
 																									}
 																								});
 																			}
@@ -134,7 +132,7 @@ module.exports = function(app, swig, gestorBD) {
 			if (canciones == null) {
 				res.send(respuesta);
 			} else {
-				var respuesta = swig.renderFile('views/btienda.html', {
+				var respuesta = swig.renderFile('views/bcancion.html', {
 					cancion : canciones[0]
 				});
 				res.send(respuesta);
@@ -177,7 +175,7 @@ module.exports = function(app, swig, gestorBD) {
 					if (result == null) {
 						res.send("Error en la modificación");
 					} else {
-						res.send("Modificado");
+						res.redirect("/publicaciones");
 					}
 				});
 
@@ -214,5 +212,18 @@ module.exports = function(app, swig, gestorBD) {
 			callback(true); // FIN
 		}
 	}
+
+	app.get('/cancion/eliminar/:id', function(req, res) {
+		var criterio = {
+			"_id" : gestorBD.mongo.ObjectID(req.params.id)
+		};
+		gestorBD.eliminarCancion(criterio, function(canciones) {
+			if (canciones == null) {
+				res.send(respuesta);
+			} else {
+				res.redirect("/publicaciones");
+			}
+		});
+	})
 
 };
