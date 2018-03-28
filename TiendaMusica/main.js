@@ -1,6 +1,10 @@
 var express = require('express');
 var app = express();
 
+var fs = require('fs');
+var https = require('https');
+
+
 var expressSession = require('express-session');
 app.use(expressSession({
  secret: 'abcdefg',
@@ -38,6 +42,8 @@ console.log("routerUsuarioSession");
 // Aplicar routerUsuarioSession
 app.use("/canciones/agregar",routerUsuarioSession);
 app.use("/publicaciones",routerUsuarioSession);
+app.use("/cancion/comprar",routerUsuarioSession);
+app.use("/compras",routerUsuarioSession);
 
 // routerAudios
 var routerAudios = express.Router();
@@ -49,7 +55,18 @@ routerAudios.use(function(req, res, next) {
 		if( canciones[0].autor == req.session.usuario ){
 			next();
 		} else {
-			res.redirect("/tienda");
+			var criterio = {
+					 usuario : req.session.usuario,
+					 cancionId : mongo.ObjectID(idCancion)
+					 };
+			gestorBD.obtenerCompras(criterio ,function(compras){
+				 if (compras != null && compras.length > 0 ){
+				 next();
+				 } else {
+					 res.redirect("/tienda");
+				 }
+				 });
+				 
 		}
 	})
 });
@@ -100,7 +117,20 @@ app.set('crypto',crypto);
 require("./routes/rusuarios.js")(app, swig, gestorBD);
 require("./routes/rcanciones.js")(app, swig, gestorBD); 
 
+
+app.use( function (err, req, res, next ) {
+	 console.log("Error producido: " + err); // we log the error in our db
+	 if (! res.headersSent) {
+	 res.status(400);
+	 res.send("Recurso no disponible");
+	 }
+	});
+
+
 // Lanzar servidor
-app.listen(app.get('port'), function() {
+https.createServer({
+	 key: fs.readFileSync('certificates/alice.key'),
+	 cert: fs.readFileSync('certificates/alice.crt')
+	}, app).listen(app.get('port'), function() {
 	console.log("Servidor activo");
-});
+	});
