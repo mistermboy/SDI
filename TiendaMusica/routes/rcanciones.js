@@ -1,68 +1,68 @@
 module.exports = function(app, swig, gestorBD) {
 
-	app
-			.post(
-					"/cancion",
-					function(req, res) {
+    app
+        .post(
+            "/cancion",
+            function (req, res) {
 
-						if (req.session.usuario == null) {
-							res.redirect("/tienda");
-							return;
-						}
+                if (req.session.usuario == null) {
+                    res.redirect("/tienda");
+                    return;
+                }
 
-						var cancion = {
-							nombre : req.body.nombre,
-							genero : req.body.genero,
-							precio : req.body.precio,
-							autor : req.session.usuario
-						}
+                var cancion = {
+                    nombre: req.body.nombre,
+                    genero: req.body.genero,
+                    precio: req.body.precio,
+                    autor: req.session.usuario
+                }
 
-						// Conectarse
-						gestorBD
-								.insertarCancion(
-										cancion,
-										function(id) {
-											if (id == null) {
-												res.send("Error al insertar ");
-											} else {
-												if (req.files.portada != null) {
-													var imagen = req.files.portada;
-													imagen
-															.mv(
-																	'public/portadas/'
-																			+ id
-																			+ '.png',
-																	function(
-																			err) {
-																		if (err) {
-																			res
-																					.send("Error al subir la portada");
-																		} else {
-																			if (req.files.audio != null) {
-																				var audio = req.files.audio;
-																				audio
-																						.mv(
-																								'public/audios/'
-																										+ id
-																										+ '.mp3',
-																								function(
-																										err) {
-																									if (err) {
-																										res
-																												.send("Error al subir el audio");
-																									} else {
-																										res
-																												.redirect("/publicaciones");
-																									}
-																								});
-																			}
-																		}
-																	});
-												}
-											}
-										});
+                // Conectarse
+                gestorBD
+                    .insertarCancion(
+                        cancion,
+                        function (id) {
+                            if (id == null) {
+                                res.send("Error al insertar ");
+                            } else {
+                                if (req.files.portada != null) {
+                                    var imagen = req.files.portada;
+                                    imagen
+                                        .mv(
+                                            'public/portadas/'
+                                            + id
+                                            + '.png',
+                                            function (err) {
+                                                if (err) {
+                                                    res
+                                                        .send("Error al subir la portada");
+                                                } else {
+                                                    if (req.files.audio != null) {
+                                                        var audio = req.files.audio;
+                                                        audio
+                                                            .mv(
+                                                                'public/audios/'
+                                                                + id
+                                                                + '.mp3',
+                                                                function (err) {
+                                                                    if (err) {
+                                                                        res
+                                                                            .send("Error al subir el audio");
+                                                                    } else {
+                                                                        res
+                                                                            .redirect("/publicaciones");
+                                                                    }
+                                                                });
+                                                    }
+                                                }
+                                            });
+                                }
+                            }
+                        });
 
-					});
+            });
+
+
 
 	app.get("/canciones", function(req, res) {
 		var canciones = [ {
@@ -107,11 +107,12 @@ module.exports = function(app, swig, gestorBD) {
 	app.get("/tienda", function(req, res) {
 		var criterio = {};
 		if (req.query.busqueda != null) {
-			criterio = {
-				"nombre" : {
-					$regex : ".*" + req.query.busqueda + ".*"
-				}
-			}
+            criterio = {
+                "nombre": {
+                    $regex: ".*" + req.query.busqueda + ".*"
+                }
+            }
+        }
 
 			var pg = parseInt(req.query.pg); // Es String !!!
 			if (req.query.pg == null) { // Puede no venir el param
@@ -139,17 +140,8 @@ module.exports = function(app, swig, gestorBD) {
 						}
 					});
 
-		}
-		gestorBD.obtenerCanciones(criterio, function(canciones) {
-			if (canciones == null) {
-				res.send("Error al listar ");
-			} else {
-				var respuesta = swig.renderFile('views/btienda.html', {
-					canciones : canciones
-				});
-				res.send(respuesta);
-			}
-		});
+		
+
 	});
 
 	app.get('/cancion/:id', function(req, res) {
